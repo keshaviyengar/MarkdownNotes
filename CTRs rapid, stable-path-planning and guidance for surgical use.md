@@ -94,6 +94,49 @@ $$d_{sta} = \frac{\pi}{2} - atan2(1, \sigma^q)$$
 * Eg. If maximum number of sections is 2, six different robot class codes will be generated coresponding to different architectures for two sections {{FC}, {FC, FC}, {FC,VC},{VC,FC},{VC,VC}}. Number of class codes generated is $$n_{class} = 2^{n_{max,sec}+1} - 2$$. The maximum number of sections is 8, therefore in worst case $$n_= 8$$ 510 codes are genereated in less than a minute
 
 ### Unrolling Loops at Compilte Time ###
+* Iterating over tuples of sections requires the indexes of elements, at compile time, to be accessed (such that the index is a template parameter)
+* Every loop needs a iteration bound at compile time
+* Standard approach is to use recursive template calls, acting on the next element in the tuple
+* Developed a dedicated convienve struct:static for
+* Resultss in a call to pointed function with current iteration index and a recursive call to static for with an incremented (inc >0) or decremented (inc <0) iter value
+* This unrolls the for loop at compile time into instructions can be vectorized
+* Last template parameter to ensure a stop criterion
+* To use the function parameter as a parameter, the iteration index was packaged into an integral_constant class
+* Using generic $$\lambda$$ loop index in the function can be retrieved from the declaretype of function parameter as a constexpr, because it is a parameter type instead of a parameter value
+
+### Resolving Conditionals at Compile Time ###
+* Runtime performance decreased by lots of machine-level jumps created by if/else
+* Minimize number of jumps with static_if_else
+* Two function pointers passed to static_if_else struct, first is if instructions and second is else
+* Depending on the template parameter, correct branch is selected at compile time
+* Using static_for and static_if_else to compile CTR classes codes, all combinations of sections, every single class can be individually optimized by compiler
+
+### Guidance via IACs ###
+* With the architecture described IACs can be generated
+* Path plans are generated with precomupted road maps and navigation goal positions described by a clinician
+* Precomputation can happen in a matter minutes, rather than hours
+* In precomputation step, random configurations of robot generated in parallel (parallel computation)
+* Path planner efficency relies on developed multinode framework
+* A central computer controls computing clients and generates random robot configurations samples and solves the IK using different techniques
+
+### Probabilitic Road Map ###
+* Constraint generation framework is based on undirected graph $$G$$, with vertices $$v_i \in G$$
+* Vertices represent random stable collision free CTR configurations, edges $$e_{i,j}$$ represent transitions possible transitions among configurations
+* Graph queried using A* grap search to extract shortest paht between current configuration and configuration corresponding to tip pose
+* Euclidean norm between two vertex postions is admissible A* heuristic
+* Extracted series of configuration generates a guidance path along with which an operator is guided
+
+### Precomputation of the Graph: Generation of the Road Map ###
+* To find safe robot configurations, the server controls parameters defining configuration samping (density) $$(\gamma_{\phi}, q)$$ and configuration acceptance $$(d^{thres}_{ana}, d^{thres}_{sta})$$
+* Since we need uniformly distributed configurations in task space, joint space sampling has to be non-linear
+* Extended robot configurations are most likely rejected as they would collide with anatomy, leading to bias of shorter robot that needs to be accounted for
+* Using a randomly uniformly distributed number $$q_{r,u} \in [0,1]$$ for a tube with maximum extension of $$_{i}\phi^{max}$$, translation/extension joints are scaled with $$q_r = {_i}\phi^{max} q_{r,u}^{\gamma_{\phi}}, \gamma_{\phi} \in [0,1]$$
+* Extent of sampling elongated vs. rectracted is governed by $$\gamma_{\phi}$$
+* Each client calculates the FK for the given joint value, determines $$d_{sta}, d_{ana}$$ and sends to server iff
+$$ d_{col}(q_r) \leq d^{thres}_{col} \land d_{sta}(q_r) \leq d^{thres}_{sta}$$
+* When the server has received a minimum number of configurations, a local planner calculates edges $$e_{i,j}$$ and cost for transitioning from one robot configuration ($$v_i$$) to another $$v_j$$
+* Edge generation is two stages, fist the cost for a potential edge $$e_{i,j}$$ has to be below a threshold, and scond, only edges with $$N^{max}_s$$ smallest costs are introduced
+* 
 
 
 
