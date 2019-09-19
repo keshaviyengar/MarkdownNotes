@@ -44,30 +44,30 @@ Concentric Tube Robots: Rapid, Stable Path-Planning and Guidance for Surgical Us
 * Sections of CTRs can be variable curvature (VC) and fixed curvature (FC)
 * A VC section consists of two tubes which rotate invidually and translate in tandem (3 DOF)
 * FC section is a single tube and has 2 DOF
-* The ith tubes translation $$_i\phi$$ and base rotation is $$_i\alpha^B$$
-* Joint space $$q$$ is described as a set
-$$\{_i\phi \,_i\alpha^B\} \quad i \in [1,N_t ]$$ where $$N_t$$ is number of tubes
+* The ith tubes translation
+$_i\phi$ and base rotation is $_i\alpha^B$
+* Joint space $q$ is described as a set $\{_i\phi `, {_i}\alpha^B\} \quad i \in [1,N_t ]$ where $N_t$ is number of tubes
 * This work estimates shape of CTR based on unloaded torsionally compliant kinematics model
-* Rely on computationally demanding iterative solving of a boundary value problem, beginning at torsion-free tip angle $$_i\alpha^T$$, differential equations are iteratively solved via Euler approximations (discretization step $$\epsilon_{arc}$$ to obtain base angle $$_i\alpha^B$$ for each tube
+* Rely on computationally demanding iterative solving of a boundary value problem, beginning at torsion-free tip angle ${_i}\alpha^T$, differential equations are iteratively solved via Euler approximations (discretization step $\epsilon_{arc}$ to obtain base angle $_i\alpha^B$ for each tube
 * Shape is calculated with matrix exponentials and curvature along robot's centre line
 
 ### Anatomical Constraints ###
-* Important to avoid contact with anatomy (denoted as $$\Gamma$$)
-* Rasterized polygons (maximum lattice of $$\epsilon_{lat}$$ provide representation of $$\Gamma$$ as set of 3D points
-* Stored in a k-d tree for rapid distance queries between shape and $$\Gamma$$
+* Important to avoid contact with anatomy (denoted as $\Gamma$)
+* Rasterized polygons (maximum lattice of $\epsilon_{lat}$ provide representation of $\Gamma$ as set of 3D points
+* Stored in a k-d tree for rapid distance queries between shape and $\Gamma$
 * At each point along robot center line
-    * maximum tube diameter $$_{i_{cl}}r^t$$ (external surface of robot)
-    * k-d tree queried to find nearest neighbor $$i_{i_{cd}}d^{nn}$$ of every robot point to $$\Gamma$$
-    * Given tube radii, $$_{i_{cl}}r^t$$, discretization step $$\epsilon_{arc}$$ and mesh lattice $$\epsilon_{lat}$$, distance to anatomy $$d_{ana}$$
-$$d_{ana} = \min_{i_{cl}} \left(_{i_{cl}}d^{nn} - ||\frac{1}{2} [\epsilon_{arc}, \epsilon_{lat}]^T||_2 - {_{i_{cl}}r^t} \right)$$
-* collision iff $$d_{ana} \leq 0$$
+    * maximum tube diameter $_{i_{cl}}r^t$ (external surface of robot)
+    * k-d tree queried to find nearest neighbor $i_{i_{cd}}d^{nn}$ of every robot point to $\Gamma$
+    * Given tube radii, $_{i_{cl}}r^t$, discretization step $\epsilon_{arc}$ and mesh lattice $\epsilon_{lat}$, distance to anatomy $d_{ana}$
+ > $$d_{ana} = \min_{i_{cl}} \left(_{i_{cl}}d^{nn} - ||\frac{1}{2} [\epsilon_{arc}, \epsilon_{lat}]^T||_2 - {_{i_{cl}}r^t} \right)$$
+> $$collision \iff d_{ana} \leq 0$$
 
 ### Stability Constraints ###
-* Quantitative measure of stability is used, demonstrated that instability manifests as an S-shaped curve relating the tube rotation at base $$\alpha^B$$ to tube rotation at tip, $$\alpha^T$$
-* Stable CTRs do not exhibit negative slopes on s-curve giving rise to measure of stability $$d_{sta}$$
-$$d_{sta} = \frac{\pi}{2} - atan2(1, \sigma^q)$$
-* where $$\sigma^q$$ is the minimum inverse slope along the entire s-curve
-* The configuration is unstable iff $$d_{sta} < 0$$
+* Quantitative measure of stability is used, demonstrated that instability manifests as an S-shaped curve relating the tube rotation at base $\alpha^B$ to tube rotation at tip, $\alpha^T$
+* Stable CTRs do not exhibit negative slopes on s-curve giving rise to measure of stability $d_{sta}$
+> $$d_{sta} = \frac{\pi}{2} - atan2(1, \sigma^q)$$
+* where $\sigma^q$ is the minimum inverse slope along the entire s-curve
+* The configuration is unstable iff $d_{sta} < 0$
 * Advantage of having a quantitative measure of stability is ease of generation of cost functions for inclusion in optimization-based inverse kinematics and thresholds for accepting or rejecting robot configuration under examination
 
 ### Rapid Forward and Inverse Kinematics ###
@@ -91,7 +91,7 @@ $$d_{sta} = \frac{\pi}{2} - atan2(1, \sigma^q)$$
 * An abstract base class has limitd interface of elevator functions so computational overhead is marginal
 * Variadic-template class derives from this base class and generates components of a CTR (FC or VC sections)
 * Many instances of this robot class will be compiled , expecting different robot architectures
-* Eg. If maximum number of sections is 2, six different robot class codes will be generated coresponding to different architectures for two sections {{FC}, {FC, FC}, {FC,VC},{VC,FC},{VC,VC}}. Number of class codes generated is $$n_{class} = 2^{n_{max,sec}+1} - 2$$. The maximum number of sections is 8, therefore in worst case $$n_= 8$$ 510 codes are genereated in less than a minute
+* Eg. If maximum number of sections is 2, six different robot class codes will be generated coresponding to different architectures for two sections {{FC}, {FC, FC}, {FC,VC},{VC,FC},{VC,VC}}. Number of class codes generated is $n_{class} = 2^{n_{max,sec}+1} - 2$. The maximum number of sections is 8, therefore in worst case $n_= 8$ 510 codes are genereated in less than a minute
 
 ### Unrolling Loops at Compilte Time ###
 * Iterating over tuples of sections requires the indexes of elements, at compile time, to be accessed (such that the index is a template parameter)
@@ -102,7 +102,7 @@ $$d_{sta} = \frac{\pi}{2} - atan2(1, \sigma^q)$$
 * This unrolls the for loop at compile time into instructions can be vectorized
 * Last template parameter to ensure a stop criterion
 * To use the function parameter as a parameter, the iteration index was packaged into an integral_constant class
-* Using generic $$\lambda$$ loop index in the function can be retrieved from the declaretype of function parameter as a constexpr, because it is a parameter type instead of a parameter value
+* Using generic $\lambda$ loop index in the function can be retrieved from the declaretype of function parameter as a constexpr, because it is a parameter type instead of a parameter value
 
 ### Resolving Conditionals at Compile Time ###
 * Runtime performance decreased by lots of machine-level jumps created by if/else
@@ -120,25 +120,19 @@ $$d_{sta} = \frac{\pi}{2} - atan2(1, \sigma^q)$$
 * A central computer controls computing clients and generates random robot configurations samples and solves the IK using different techniques
 
 ### Probabilitic Road Map ###
-* Constraint generation framework is based on undirected graph $$G$$, with vertices $$v_i \in G$$
-* Vertices represent random stable collision free CTR configurations, edges $$e_{i,j}$$ represent transitions possible transitions among configurations
+* Constraint generation framework is based on undirected graph $G$, with vertices $v_i \in G$
+* Vertices represent random stable collision free CTR configurations, edges $e_{i,j}$ represent transitions possible transitions among configurations
 * Graph queried using A* grap search to extract shortest paht between current configuration and configuration corresponding to tip pose
 * Euclidean norm between two vertex postions is admissible A* heuristic
 * Extracted series of configuration generates a guidance path along with which an operator is guided
 
 ### Precomputation of the Graph: Generation of the Road Map ###
-* To find safe robot configurations, the server controls parameters defining configuration samping (density) $$(\gamma_{\phi}, q)$$ and configuration acceptance $$(d^{thres}_{ana}, d^{thres}_{sta})$$
+* To find safe robot configurations, the server controls parameters defining configuration samping (density) $(\gamma_{\phi}, q)$ and configuration acceptance $(d^{thres}_{ana}, d^{thres}_{sta})$
 * Since we need uniformly distributed configurations in task space, joint space sampling has to be non-linear
 * Extended robot configurations are most likely rejected as they would collide with anatomy, leading to bias of shorter robot that needs to be accounted for
-* Using a randomly uniformly distributed number $$q_{r,u} \in [0,1]$$ for a tube with maximum extension of $$_{i}\phi^{max}$$, translation/extension joints are scaled with $$q_r = {_i}\phi^{max} q_{r,u}^{\gamma_{\phi}}, \gamma_{\phi} \in [0,1]$$
-* Extent of sampling elongated vs. rectracted is governed by $$\gamma_{\phi}$$
-* Each client calculates the FK for the given joint value, determines $$d_{sta}, d_{ana}$$ and sends to server iff
-$$ d_{col}(q_r) \leq d^{thres}_{col} \land d_{sta}(q_r) \leq d^{thres}_{sta}$$
-* When the server has received a minimum number of configurations, a local planner calculates edges $$e_{i,j}$$ and cost for transitioning from one robot configuration ($$v_i$$) to another $$v_j$$
-* Edge generation is two stages, fist the cost for a potential edge $$e_{i,j}$$ has to be below a threshold, and scond, only edges with $$N^{max}_s$$ smallest costs are introduced
-* 
-
-
-
-
-
+* Using a randomly uniformly distributed number $q_{r,u} \in [0,1]$ for a tube with maximum extension of $_{i}\phi^{max}$, translation/extension joints are scaled with $q_r = {_i}\phi^{max} q_{r,u}^{\gamma_{\phi}}, \gamma_{\phi} \in [0,1]$
+* Extent of sampling elongated vs. rectracted is governed by $\gamma_{\phi}$
+* Each client calculates the FK for the given joint value, determines $d_{sta}, d_{ana}$ and sends to server iff 
+    > $d_{col}(q_r) \leq d^{thres}_{col} \land d_{sta}(q_r) \leq d^{thres}_{sta}$
+* When the server has received a minimum number of configurations, a local planner calculates edges $e_{i,j}$ and cost for transitioning from one robot configuration ($v_i$) to another $v_j$
+* Edge generation is two stages, fist the cost for a potential edge $e_{i,j}$ has to be below a threshold, and scond, only edges with $N^{max}_s$ smallest costs are introduced
