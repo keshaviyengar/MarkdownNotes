@@ -1,3 +1,4 @@
+
 On Merits of Using Joint Space and Orientation Representations in Learning the Forward Kinematics in SE(3)
 ============
 Grassman and Burgner-Kahrs
@@ -59,4 +60,31 @@ Grassman and Burgner-Kahrs
 
 3. Quaternion:
     * A unit quaternion can be represented as a hypercomplex number denoted by:
-    > $$\xi = \eta + \epsilon_1 i  + \eplsion_2 j + \epsilon_3 k $$
+    > $$\xi = \eta + \epsilon_1 i  + \epsilon_2 j + \epsilon_3 j$$
+    * With the property $\eta^2 +  \epsilon_1^2  + \epsilon_2^2 + \epsilon_3^2 = 1$
+    * Unit quaternion defined by
+    > $$\xi = \cos (\frac{\theta}{2}) + (n_x i + n_y j + n_z k) \sin(\frac{\theta}{2})$$
+    * This representation is singularity free and global
+    * Double coverage $\xi$ and $-\xi$ represent the same orientation
+    * We can determine the orientation angle with
+    > $$\theta = 2 \arccos (sign(\eta)\eta)$$
+    > $$n = \frac{sign(\eta)}{\sqrt{\epsilon_1^2  + \epsilon_2^2 + \epsilon_3^2}}(\epsilon_1, \epsilon_2, \epsilon_3)^T$$
+    * $n$ can be computed iff $\eta^2 \neq 1$ and $\epsilon_1^2  + \epsilon_2^2 + \epsilon_3^2 \neq 0$
+4. Mapping Quaternions and Vectorial Parameterization
+	* Coefficents of a quaternion can be expressed in terms vectorial equations.
+	> $$\eta = \cos (2 \arcsin \left(\frac{||r||_2}{4} \right) = 1 - \frac{1}{8} ||r||^2_2$$
+	> $$\epsilon_i = \frac{1}{8} r_i \sqrt{16 - ||r||_2^2} \ i \in [1,2,3]$$
+	* Combining the above equations
+	> $$r_i = \frac{4 sign(\eta)}{\sqrt{2 + 2\eta sign(\eta)}} \ i \in [1,2,3]$$
+5. Four-parameter Angle-Axis Representation
+	* Commonly angle-axis is represented as 3-parameter
+	* A four dimensional version including the unit vector $n$ and $\theta$ is used. $(\theta, n) = (\theta, n_x, n_y, n_z)$  Can now be compared to quaternions.
+#### C. Approximating Error: Cartesian Space
+* Error approximation FK formulae. Translational error $e_t$ is given by
+> $$e_t = \sqrt{(t_x - \hat{t_x})^2 + (t_y - \hat{t_y})^2 + (t_z - \hat{t_z})^2}$$
+* The hat denotes an approximated value by the NN and $t_i$ denotes a position along the cartesian axis.
+* Rotational error $\e_\theta$ is
+> $$e_\theta = \min (2 \arccos(\eta \hat{\eta} + \epsilon_1 \hat{\epsilon_1 + \epsilon_2 \hat{\epsilon_2}+ \epsilon_3 \hat{\epsilon_3}}), $$ $$2 \arccos(\eta \hat{\eta} - \epsilon_1 \hat{\epsilon_1 - \epsilon_2 \hat{\epsilon_2} - \epsilon_3 \hat{\epsilon_3}}))$$
+
+#### D. Various Joint Space Representations of a CTCR
+ 
