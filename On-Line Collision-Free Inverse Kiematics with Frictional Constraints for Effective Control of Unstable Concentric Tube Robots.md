@@ -70,4 +70,48 @@ $x_{EE} = f_{FW} (q + \dot{q} \Delta t)$
 * A scalar cost function $c(q, \Tau, x^B, \Gamma)$ is used where $q$ is the joint angles $\Tau$ is robot architecure, $x^B$ is desired tip pose and $\Gamma$ is anatomical and stability constraints
 * Collision modelled as a linear continuous function, increasing with distance between robot and anatomy $d(q, \Tau, \Gamma)$, in the interval $[d_0, d_1]$
 > $c_{Collision} \left( d(q, \Tau, \Gamma) \right) =  \begin{cases}0, & \text{if}\ d \leq d_0 \\ \frac{d-d_1}{d_0-d_1}, & \text{if}\ d_0 < d < d_1 \\ 0, & \text{if}\ d_1 \leq d \end{cases}$
-* The stability cost is $S(q, \Tau) = \begin{cases}1, & \text{if}\ \text{unstable} \\ 0, & \text{if}\ \text{stable}\end{cases}$
+* The stability cost is 
+> $S(q, \Tau) = \begin{cases}1, & \text{if}\ \text{unstable} \\ 0, & \text{if}\ \text{stable}\end{cases}$
+* The stability cost is caclulated for every rotational joint variable $\alpha^{base}$ for each tube $t$. If every tube pair is stable, then the configuration is considered stable.
+* Overall cost function is computed as
+> $c(q, \Tau, x^B, \Gamma) = \gamma_1 ||x_{EE}(q) - x^B|| + \gamma_2 arcsin(||z(q) \times z^B||) + \gamma_3 c_{Collision}(q, \Tau, \Gamma) + \gamma_4 S(q, \Tau)$
+* The fist ter mis tip position error, second is tip orientation error, third is collision cost, and final is stability cost
+* Choose weights ($\gamma_3$ and $\gamma_4$) sufficiently high,
+> $\gamma_3 = \gamma_4 \geq 2 \gamma_1 l_{max} + \gamma_2 \pi
+* Cost function is pretty similar in literature but optimization techinques differ
+* Example include
+    1. Branch and Bound, for the guidance of i-Snake
+    2. Broyden-Fletcher-Goldfarb-Shanno, for guidance of concentric tube robots through tubular anatomy.
+    3. Nelder-Mead simplex method for inverse kinematics and optimal concentric tube robot design.
+    4. Generalized Pattern Search for inverse kinematics and optimal concentric tube robot design.
+    5. Gauss-Newton for inverse kinematics.
+* Variety of solvers indicates no best algorithm yet, fine tuning of parameters making use in clincal setting error-prone
+
+##### Parallel System Architecture
+* Parallel system architecture that leverages multi-core clsters to overcome single optimiser limitations
+* IK problem does not conform well to single instruction multiple data (SIMD), GPUs not viable
+* Different optimisation algorithms with different parameters independently and asynchronously eployed to solve local IK before best solution used for control
+* Master node gives user force feedback and recieves user input such as commanded pose $x_B$ and control parameters
+* Each node recieves the control parameters continously and provides to optimisation threads, which minimize a global cost function.
+* Communication thread for each optimiser nodes broadcasts its best result
+* Master node compares te costs with current cost and updates joint variables to reduce error
+* Parallel structure of the sovlers can deliver online local IK solutions that account for instability and collisions for general clinical scenarios
+
+#### Active Constraints
+* Active constraints are there to help operator perceive environment and direct towards safe solutions through anatomy and goal based force fields
+
+##### Frictional Forbidden Region Active Constraints
+* FFRAC that steer telemanipulators away from the anatomy
+* When only elastic forces are applied, unwanted autonomous motions or oscillations from the telemanipulator may occur
+* To dissipate kinetic energy delivered by active constraints and users motion, elasto-pastic friction models that superimpose viscous forces on the constraints are considered
+* This results in minimized oscillations by dmping excessive tool and manipulator velocities and are termed frictional forbidden region active constraints
+* Forces superimposed to act are:
+> $f_{FFRAC} = \sigma_0 z + \sigma_1 \dot{z} + \sigma_2 \dot{x}^B$
+where $z$ is the elastic displacement, $\dot{z}$ is the velocity of elastic displacement, $\dot{x}^B$  is commanded pose tip velocity and $\sigma_{0,1,2}$ are scaling coefficent.
+* In literature there is no upper bound on fricitional forces
+* Scale is emperically defined upper bound $||f_{FFRAC}|| \leq f_C$
+* Direction nand magnitude of elastic force depends on commanded tip position
+* Three main zones, $a_1, a_2, a_3$:
+    1.  $x^B$ is exterior to anatomy, elastic force is maximized and is attractive to anatomy border.
+    2. $x^B$ is within anatomy and a specified safety transition zone, which case is repulsive
+    3. $x^B$ is in a safe zone, no force is applied
