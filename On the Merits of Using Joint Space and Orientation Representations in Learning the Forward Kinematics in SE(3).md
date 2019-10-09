@@ -58,4 +58,5 @@ Grassman and Burgner-Kahrs
     * Cannot be recovered if $\theta = 0$ as that indicates $||r||_2=0$
 
 3. Quaternion:
-
+    * A unit quaternion can be represented as a hypercomplex number denoted by:
+    > $$\xi = \eta + \epsilon_1 i  + \eplsion_2 j + \epsilon_3 k $$
